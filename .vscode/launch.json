@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "name": "Python Debugger",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "org_struct_back.app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080",
+        "--reload",
+        "--workers",
+        "1"
+      ],
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

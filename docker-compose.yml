@@ -1,0 +1,21 @@
+services:
+  back:
+    build: .
+    container_name: back
+    ports:
+      - "8080:8080"
+    environment:
+      OSB_SERVER_NAME: org-struct-back
+      OSB_DATABASE_CONNECTION_STRING: postgresql+psycopg2://postgres:postgres@database:5432/postgres
+      OSB_STRUCT_READER_CSV_PATH: /data/data.csv
+
+    volumes:
+      - ./data:/data
+
+  database:
+    image: postgres:17
+    container_name: database
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
