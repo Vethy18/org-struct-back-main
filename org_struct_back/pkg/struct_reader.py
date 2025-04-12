@@ -17,7 +17,7 @@ class StructReader(ABC):
 class StructReaderImpl(StructReader):
     def __init__(self, settings: StructReaderSettings) -> None:
         self._settings = settings
-        self._lines = self._read_excel()
+        self._lines = self._read_csv()
 
     def parse(self) -> NodeEntity | None:
         from collections import defaultdict
@@ -36,6 +36,9 @@ class StructReaderImpl(StructReader):
                 sub_path = path[:i]
                 name = path[i - 1]
 
+                if not name or str(name).strip() == "":
+                    continue  # Ignore empty nodes
+
                 if sub_path in node_map:
                     parent_node = node_map[sub_path]
                     continue
@@ -50,15 +53,19 @@ class StructReaderImpl(StructReader):
 
                 parent_node = node
 
-        # Return the first root node (Головная компания)
         return list(root_nodes.values())[0] if root_nodes else None
 
-    def _read_excel(self) -> list[list[str]]:
+    def _read_csv(self) -> list[list[str]]:
         if not os.path.isfile(self._settings.csv_path):
             return []
 
-        df = pd.read_excel(self._settings.csv_path)
-        df = df[["ЮЛ", "Филиал", "Департамент", "Отдел", "Должность"]].fillna(method="ffill")
+        df = pd.read_csv(
+            self._settings.csv_path,
+            header=None,
+            names=["ЮЛ", "Филиал", "Департамент", "Отдел", "Должность"],
+        )
+
+        df = df.fillna(method="ffill")
         df_unique = df.drop_duplicates()
 
         return df_unique.values.tolist()
