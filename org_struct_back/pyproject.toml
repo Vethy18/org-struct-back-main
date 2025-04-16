@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "org-struct-back"
+version = "0.1.0"
+description = "Org structure backend"
+authors = ["Meissa Youssef"]
+
+[tool.poetry.dependencies]
+python = ">=3.13,<4.0"
+pandas = "^2.2.3"
+openpyxl = "^3.1.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

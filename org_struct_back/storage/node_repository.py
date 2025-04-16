@@ -20,23 +20,32 @@ class NodeRepository(ABC):
     def create(self, session: Session, node: NodeEntity) -> None:
         pass
 
+    @abstractmethod
+    def get_root(self, session: Session) -> NodeEntity | None:
+        pass
+
 
 class NodeRepositoryImpl(NodeRepository):
     def get_by_id(self, session: Session, node_id: UUID, depth: int) -> NodeEntity | None:
-        node_entity = session.scalars(
+        return session.scalars(
             select(NodeEntity)
             .options(selectinload(NodeEntity.children, recursion_depth=depth))
             .filter(NodeEntity.id == node_id)
-        ).one()
-        return node_entity
+        ).one_or_none()
 
     def get_by_name(self, session: Session, name: str, depth: int) -> NodeEntity | None:
-        node_entity = session.scalars(
+        return session.scalars(
             select(NodeEntity)
             .options(selectinload(NodeEntity.children, recursion_depth=depth))
             .filter(NodeEntity.name == name)
-        ).one()
-        return node_entity
+        ).one_or_none()
 
     def create(self, session: Session, node: NodeEntity) -> None:
         session.add(node)
+
+    def get_root(self, session: Session) -> NodeEntity | None:
+        return session.scalars(
+            select(NodeEntity)
+            .where(NodeEntity.parent_id == None)
+            .options(selectinload(NodeEntity.children, recursion_depth=10))
+        ).first()

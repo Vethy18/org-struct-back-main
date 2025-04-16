@@ -1,5 +1,5 @@
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -13,8 +13,8 @@ class Base(DeclarativeBase):
 class NodeEntity(Base):
     __tablename__ = "node"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True)
-    parent_id: Mapped[UUID | None] = mapped_column(ForeignKey("node.id"))
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    parent_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("node.id"), nullable=True)
     name: Mapped[str] = mapped_column(nullable=False)
 
     children: Mapped[dict[str, "NodeEntity"]] = relationship(

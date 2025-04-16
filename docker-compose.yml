@@ -7,15 +7,21 @@ services:
     environment:
       OSB_SERVER_NAME: org-struct-back
       OSB_DATABASE_CONNECTION_STRING: postgresql+psycopg2://postgres:postgres@database:5432/postgres
-      OSB_STRUCT_READER_CSV_PATH: /data/data.csv
-
+      OSB_STRUCT_READER_CSV_PATH: /data/org_structure.xlsx
     volumes:
       - ./data:/data
+    depends_on:
+      - database
 
   database:
     image: postgres:17
     container_name: database
-    environment:
+    environment:  
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

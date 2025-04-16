@@ -12,7 +12,10 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 RUN touch README.md
 
+# ✅ install all dependencies including openpyxl
 RUN poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR
+
+# -----------------------------
 
 FROM python:3.13-bullseye AS release-stage
 
@@ -20,6 +23,8 @@ ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"
 
 COPY --from=build-stage ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+
+WORKDIR /app
 
 COPY org_struct_back ./org_struct_back
 

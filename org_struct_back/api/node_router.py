@@ -1,7 +1,9 @@
 from typing import Annotated
 from uuid import UUID
+import os
 
 from fastapi import APIRouter, Query, Response, status
+from fastapi.responses import FileResponse
 
 from org_struct_back.api.dtos import Error, Meta, NodeCreateDto, NodeDto, ResponseWrapper
 from org_struct_back.app.ioc_service import Inject
@@ -61,3 +63,35 @@ def get_by_id(
 
     response.status_code = status.HTTP_200_OK
     return ResponseWrapper(meta=Meta(success=True), data=node_dto)
+
+
+@node_router.get("/orgs/all")
+def get_all_orgs(
+    service: Annotated[NodeService, Inject(NodeService)],
+) -> dict:
+    root = service.get_root_node()
+
+    def serialize(node):
+        return {
+            "id": str(node.id),
+            "name": node.name,
+            "children": [serialize(child) for child in node.children.values()],
+        }
+
+    if root is None:
+        return {"detail": "No data"}
+
+    return serialize(root)
+
+
+
+@node_router.get("/orgs/download", response_model=None)
+def download_original_file():
+    file_path = os.getenv("OSB_STRUCT_READER_CSV_PATH")
+    if not file_path or not os.path.exists(file_path):
+        return {"detail": "File not found"}
+    return FileResponse(
+        path=file_path,
+        filename="orgs.xlsx",
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )

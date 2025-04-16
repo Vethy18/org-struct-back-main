@@ -11,6 +11,7 @@ from org_struct_back.settings.database_settings import DatabaseSettings
 from org_struct_back.storage.entities import Base, NodeEntity
 
 
+# ✅ Define abstract class here (not imported from itself!)
 class Database(ABC):
     @abstractmethod
     def __call__(self) -> Generator[Session, Any]:
@@ -27,9 +28,9 @@ class DatabaseImpl(Database):
         self._scoped_session = scoped_session(sessionmaker(bind=self._engine))
         Base.metadata.create_all(self._engine)
 
-        node_entity = reader.parse()
-        if node_entity is not None:
-            self._fill_database(node_entity)
+        root = reader.parse()
+        if root is not None:
+            self._persist_recursively(root)
 
     @contextmanager
     def __call__(self) -> Generator[Session, Any]:
@@ -46,9 +47,11 @@ class DatabaseImpl(Database):
         self._scoped_session.remove()
         self._engine.dispose()
 
-    def _fill_database(self, node_entity: NodeEntity) -> None:
+    def _persist_recursively(self, node: NodeEntity, parent_id=None):
+        node.parent_id = parent_id
         with self() as session:
-            session.add(node_entity)
+            session.add(node)
             session.commit()
-            for child_name in node_entity.children:
-                self._fill_database(node_entity.children[child_name])
+
+            for child in node.children.values():
+                self._persist_recursively(child, node.id)
