@@ -34,14 +34,16 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[Any, Any]:
         print_tree(root_node)
         print("=== ORGANIZATIONAL STRUCTURE END ===\n")
 
-        service: NodeService = container.resolve(NodeService)
+        #  FIXED: persist full tree with original entity references
+        with db() as session:
+            def persist_tree(node: NodeEntity, parent_id=None):
+                node.parent_id = parent_id
+                session.add(node)
+                for child in node.children.values():
+                    persist_tree(child, node.id)
 
-        def persist_tree(node: NodeEntity, parent_id=None):
-            new_node = service.create(node.name, parent_id)
-            for child in node.children.values():
-                persist_tree(child, new_node.id)
-
-        persist_tree(root_node)
+            persist_tree(root_node)
+            session.commit()
     else:
         print("\n[!] No root node was parsed — please check the Excel path or format.\n")
 

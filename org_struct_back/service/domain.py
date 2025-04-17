@@ -26,6 +26,10 @@ class NodeService(ABC):
     def get_root_node(self) -> NodeEntity | None:
         pass
 
+    @abstractmethod
+    def get_root_nodes(self) -> list[NodeEntity]:
+        pass
+
 
 class NodeServiceImpl(NodeService):
     def __init__(self, repository: NodeRepository, db: Database) -> None:
@@ -55,3 +59,7 @@ class NodeServiceImpl(NodeService):
                 .options(selectinload(NodeEntity.children).selectinload(NodeEntity.children))\
                 .filter(NodeEntity.parent_id == None)\
                 .first()
+
+    def get_root_nodes(self) -> list[NodeEntity]:
+        with self._db() as session:
+            return session
